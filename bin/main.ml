@@ -43,8 +43,8 @@ let check_file tokens =
                                                     | "name" -> raise (Error "cant append to `name`")
                                                     | "cc" -> raise (Error "cant append to `cc`")
                                                     | "srcs" -> meta.srcs <- value :: meta.srcs
-                                                    | "incs" -> meta.incs <- value :: meta.srcs
-                                                    | "deps" -> meta.deps <- value :: meta.srcs
+                                                    | "incs" -> meta.incs <- value :: meta.incs
+                                                    | "deps" -> meta.deps <- value :: meta.deps
                                                     | _ -> raise (Error "cant append to a unknown field"))
 
             | Parser.SetProp (name, value) -> (match name with 

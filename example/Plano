@@ -1,7 +1,6 @@
 name := myproject
 srcs := ./src/main.c
 cc := find_path:gcc
-deps += pkgconf:gtk
-deps += pkgconf:owo
+deps += pkgconf:gtk4
 incs += /usr/include
 incs += ./lib

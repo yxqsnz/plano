@@ -9,6 +9,9 @@ type plano_meta = {
 
 exception Error of string
 
+let display_slist sl =
+    sl |> List.fold_left ( fun x y -> y ^ ", " ^ x ) ""
+
 let parse_instruction line =
   String.split_on_char ' ' line 
       |> List.map Parser.lex
@@ -61,8 +64,19 @@ let check_file tokens =
     in meta
 
 
-let display_slist sl =
-    sl |> List.fold_left ( fun x y -> y ^ ", " ^ x ) ""
+let prepare_meta meta =
+    let cc = match String.split_on_char ':' meta.cc with
+        | [ "find_path"; value ] -> Calls.find_path value
+        | [ res ] -> res
+        | _ -> raise (Error "You must specify a compiler")
+    in let deps = meta.deps |> List.map (fun dep -> 
+                match String.split_on_char ':' dep with
+                | [ "pkgconf"; pkg ] -> Calls.pkgconf pkg
+                | [ res ] -> res
+                | _ -> raise (Error "You must specify a dependency"))
+    in meta.cc <- cc; 
+    meta.deps <- deps;
+    meta
 
 let file_info x = 
     Printf.printf "Name: %s\nCompiler: %s\nSources: %s\nIncludes: %s\nDeps: %s\n" x.name 
@@ -70,7 +84,7 @@ let file_info x =
             (display_slist x.srcs) (display_slist x.incs) (display_slist x.deps)
 
 let () = 
-    let result = parse_file "example/Plano" |> check_file
+    let result = parse_file "example/Plano" |> check_file |> prepare_meta
     in file_info result
 
   

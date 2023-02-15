@@ -5,22 +5,18 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github yxqsnz/plano))
 
-(authors "Author Name")
+(authors "Moizes J. Sousa")
 
-(maintainers "Maintainer Name")
+(maintainers "Moizes J. Sousa")
 
 (license LICENSE)
 
-(documentation https://url/to/documentation)
-
 (package
  (name plano)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "A really simple build system")
+ (description "A really simple build system written in Ocaml")
  (depends ocaml dune)
  (tags
-  (topics "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
+  (topics build c cpp)))

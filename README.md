@@ -6,5 +6,5 @@ A really simple build system for C/C++ written in Ocaml.
 
 ## How to use?
 
-Check out [example file](example/Plano)
+Check out [example file](example/Plano).
 You can run `<excutable name> <your project path>` to build.

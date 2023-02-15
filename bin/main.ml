@@ -1,4 +1,5 @@
 open Plano
+open Printf
 type plano_meta = {
     mutable name: string;
     mutable srcs: string list; 
@@ -9,8 +10,8 @@ type plano_meta = {
 
 exception Error of string
 
-let display_slist sl =
-    sl |> List.fold_left ( fun x y -> y ^ ", " ^ x ) ""
+let join sep sl =
+    sl |> List.fold_left ( fun x y -> x ^ sep  ^ y ) ""
 
 let parse_instruction line =
   String.split_on_char ' ' line 
@@ -78,13 +79,55 @@ let prepare_meta meta =
     meta.deps <- deps;
     meta
 
-let file_info x = 
-    Printf.printf "Name: %s\nCompiler: %s\nSources: %s\nIncludes: %s\nDeps: %s\n" x.name 
+let file_info x =
+    let j = join " " 
+     in printf "Name: %s\nCompiler: %s\nSources: %s\nIncludes: %s\nDeps: %s\n" x.name 
             x.cc 
-            (display_slist x.srcs) (display_slist x.incs) (display_slist x.deps)
+            (j x.srcs) (j x.incs) (j x.deps)
 
-let () = 
-    let result = parse_file "example/Plano" |> check_file |> prepare_meta
-    in file_info result
+let build_output_object x = (Str.global_replace (Str.regexp "/") "_"  x) ^ ".o"
 
+let execute proj_folder meta =
+    Sys.chdir proj_folder;
+    let _ = try let _ = Sys.is_directory "build" in print_endline "[oo] not creating build directory.";
+            with Sys_error _ -> Sys.mkdir "build" 0o0766;
+    in
+    let _ = meta.srcs |> List.map (fun src ->
+        printf "[--] building source: %s\n" src;
+        let command = sprintf "%s -c -o %s %s %s %s" meta.cc 
+                    ("build/" ^ (build_output_object src)) 
+                    (join " " meta.deps) (join " -I" meta.incs) src
+
+       in printf "$ %s\n" command;
+        flush_all ();
+
+        match Sys.command command with
+            | 0  -> ()
+            | status -> printf "[!!] build failed with status %d. Aborting!\n" status;
+                        exit 1
+    )
+    in let link_command = sprintf "%s -o %s %s %s %s" meta.cc 
+                    ("build/" ^ meta.name ^ ".exe") 
+                    (join " " (List.map (fun x -> "build/" ^ (build_output_object x)) meta.srcs))
+                    (join " " meta.deps) 
+                    (join " -I" meta.incs)
+    in print_endline "[oo] linking executable..";
+        printf "$ %s\n" link_command;
+        flush_all ();
+
+      match Sys.command link_command with
+        | 0 -> ()
+        | status -> printf "[!!] link failed with status %d. Aborting!\n" status;
+                    exit 1
+
+
+let () = if Array.length Sys.argv = 2 then
+            let proj_folder = Sys.argv.(1) in 
+            let result = parse_file (proj_folder ^ "/Plano") |> check_file |> prepare_meta
+            in file_info result;
+            let _ = execute proj_folder result
+            in ()
+    else
+        print_endline "error: you must tell me a folder or invalid usage."
+ 
   
